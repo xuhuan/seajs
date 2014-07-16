@@ -23,13 +23,15 @@ define(function(require) {
   //assert(realpath('http://test.com/./a//b/../c') === 'http://test.com/a/c', 'realpath')
   assert(realpath('http://test.com/a/b/c/d/e/f/g/h/../../../../../../i') === 'http://test.com/a/b/i', 'realpath')
   assert(realpath('https://test.com/a/b/../../c') === 'https://test.com/c', 'realpath')
-  //assert(realpath('file:///a//b/c') === 'file:///a/b/c', 'realpath')
-  //assert(realpath('http://a//b/c') === 'http://a/b/c', 'realpath')
+  assert(realpath('file:///a//b/c') === 'file:///a/b/c', 'realpath')
+  assert(realpath('http://a//b/c') === 'http://a/b/c', 'realpath')
+  assert(realpath('http://a/b/c//../d') === 'http://a/b/d', 'realpath')
+  assert(realpath('http://a///b/c') === 'http://a/b/c', 'realpath')
 
 
   assert(normalize('a/b/c') === 'a/b/c.js', 'normalize')
   assert(normalize('a/b/c.js') === 'a/b/c.js', 'normalize')
-  assert(normalize('a/b/c.css') === 'a/b/c.css', 'normalize')
+  assert(normalize('a/b/c.css') === 'a/b/c.css.js', 'normalize')
   assert(normalize('a/b/c.d') === 'a/b/c.d.js', 'normalize')
   assert(normalize('a/b/c.json#') === 'a/b/c.json', 'normalize')
   assert(normalize('a/b/c.json') === 'a/b/c.json.js', 'normalize')
@@ -140,7 +142,7 @@ define(function(require) {
   assert(id2Uri() === '', 'id2Uri')
   assert(id2Uri('http://XXX.com.cn/min/index.php?g=commonCss.css') === 'http://XXX.com.cn/min/index.php?g=commonCss.css', 'id2Uri')
   assert(id2Uri('./front/jquery.x.queue.js#') === cwd + 'front/jquery.x.queue.js', 'id2Uri')
-  assert(id2Uri('//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js') === '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', 'id2Uri')
+  assert(id2Uri('//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js') === location.protocol + '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', 'id2Uri')
 
   var _cwd = cwd
   seajs.config({ cwd: '/User/lifesinger/path/to/root/' })

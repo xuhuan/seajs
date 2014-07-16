@@ -5,7 +5,8 @@ define([
   'hasOwnProperty',
   'map',
   'paths',
-  'preload',
-  'vars'
+//  'preload',
+  'vars',
+  'beforeExec'
 ])
 

@@ -7,9 +7,6 @@ var testSuites = [
   'specs/module',
   'specs/package',
   'specs/extensible',
-  'specs/extensible/seajs-debug',
-  'specs/extensible/seajs-flush',
-  'specs/extensible/seajs-style',
 
   'specs/misc/bootstrap',
   'specs/misc/callback-order',
@@ -19,7 +16,10 @@ var testSuites = [
   'specs/misc/utf8-in-gbk',
   'specs/misc/x-ua-compatible',
 
-  'research/derive-uri'
+  'research/derive-uri',
+
+  'specs/standalone',
+  'specs/runtime'
 ]
 
 // For seajs in node

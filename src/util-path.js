@@ -6,6 +6,7 @@ var DIRNAME_RE = /[^?#]*\//
 
 var DOT_RE = /\/\.\//g
 var DOUBLE_DOT_RE = /\/[^/]+\/\.\.\//
+var MULTI_SLASH_RE = /([^:/])\/+\//g
 
 // Extract the directory portion of a path
 // dirname("a/b/c.js?t=123#xx/zz") ==> "a/b/"
@@ -20,6 +21,14 @@ function realpath(path) {
   // /a/b/./c/./d ==> /a/b/c/d
   path = path.replace(DOT_RE, "/")
 
+  /*
+    @author wh1100717
+    a//b/c ==> a/b/c
+    a///b/////c ==> a/b/c
+    DOUBLE_DOT_RE matches a/b/c//../d path correctly only if replace // with / first
+  */
+  path = path.replace(MULTI_SLASH_RE, "$1/")
+
   // a/b/c/../../d  ==>  a/b/../d  ==>  a/d
   while (path.match(DOUBLE_DOT_RE)) {
     path = path.replace(DOUBLE_DOT_RE, "/")
@@ -33,17 +42,16 @@ function realpath(path) {
 // NOTICE: substring is faster than negative slice and RegExp
 function normalize(path) {
   var last = path.length - 1
-  var lastC = path.charAt(last)
+  var lastC = path.charCodeAt(last)
 
   // If the uri ends with `#`, just return it without '#'
-  if (lastC === "#") {
+  if (lastC === 35 /* "#" */) {
     return path.substring(0, last)
   }
 
   return (path.substring(last - 2) === ".js" ||
       path.indexOf("?") > 0 ||
-      path.substring(last - 3) === ".css" ||
-      lastC === "/") ? path : path + ".js"
+      lastC === 47 /* "/" */) ? path : path + ".js"
 }
 
 
@@ -104,24 +112,29 @@ var ROOT_DIR_RE = /^.*?\/\/.*?\//
 
 function addBase(id, refUri) {
   var ret
-  var first = id.charAt(0)
+  var first = id.charCodeAt(0)
 
   // Absolute
   if (ABSOLUTE_RE.test(id)) {
     ret = id
   }
   // Relative
-  else if (first === ".") {
+  else if (first === 46 /* "." */) {
     ret = realpath((refUri ? dirname(refUri) : data.cwd) + id)
   }
   // Root
-  else if (first === "/") {
+  else if (first === 47 /* "/" */) {
     var m = data.cwd.match(ROOT_DIR_RE)
     ret = m ? m[0] + id.substring(1) : id
   }
   // Top-level
   else {
     ret = data.base + id
+  }
+
+  // Add default protocol when uri begins with "//"
+  if (ret.indexOf("//") === 0) {
+    ret = location.protocol + ret
   }
 
   return ret
@@ -132,10 +145,14 @@ function id2Uri(id, refUri) {
 
   id = parseAlias(id)
   id = parsePaths(id)
+  id = parseAlias(id)
   id = parseVars(id)
+  id = parseAlias(id)
   id = normalize(id)
+  id = parseAlias(id)
 
   var uri = addBase(id, refUri)
+  uri = parseAlias(uri)
   uri = parseMap(uri)
 
   return uri
@@ -143,9 +160,8 @@ function id2Uri(id, refUri) {
 
 
 var doc = document
-var loc = location
-var cwd = dirname(loc.href)
-var scripts = doc.getElementsByTagName("script")
+var cwd = (!location.href || location.href.indexOf('about:') === 0) ? '' : dirname(location.href)
+var scripts = doc.scripts
 
 // Recommend to add `seajsnode` id for the `sea.js` script element
 var loaderScript = doc.getElementById("seajsnode") ||
@@ -160,4 +176,8 @@ function getScriptAbsoluteSrc(node) {
     // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
       node.getAttribute("src", 4)
 }
+
+
+// For Developers
+seajs.resolve = id2Uri
 

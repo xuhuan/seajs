@@ -5,8 +5,14 @@ define(function(require) {
 
 
   // 404
-  var a = require('./a')
-  test.assert(a === null, '404 a')
+  var a
+  try {
+    a = require('./a')
+  } catch (e) {
+    test.assert(e.toString().indexOf('module was broken:') > -1, '404 error msg ' + e)
+    n++
+  }
+  test.assert(a === void 0, '404 a')
 
   // exec error
   setTimeout(function() {
@@ -15,17 +21,17 @@ define(function(require) {
 
 
   require.async('./c', function(c) {
-    test.assert(c === null, '404 c')
+    test.assert(c === void 0, '404 c')
     done()
   })
 
   require.async('./e', function(e) {
-    test.assert(e === null, 'exec error e')
+    test.assert(e === void 0, 'exec error e')
     done()
   })
 
   seajs.use('./d', function(d) {
-    test.assert(d === null, '404 d')
+    test.assert(d === void 0, '404 d')
     done()
   })
 
@@ -33,9 +39,11 @@ define(function(require) {
   //require('./f.css')
 
   function done() {
-    if (++n === 3) {
+    if (++n === 4) {
       test.assert(w_errors.length > 0, w_errors.length)
-      test.assert(s_errors.length === 4, s_errors.length)
+
+      // 0 for IE6-8
+      test.assert(s_errors.length === 0 || s_errors.length === 3, s_errors.length)
       test.next()
     }
   }
